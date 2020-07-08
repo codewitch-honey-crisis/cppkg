@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Threading;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
@@ -95,7 +96,12 @@ namespace cppkgvs
 			var sln = dte.Solution.FullName;
 			var zip = Path.Combine(Path.GetDirectoryName(sln), Path.GetFileNameWithoutExtension(sln) + ".zip");
 			cppkg.Program.Run(new string[] { sln, "/output",zip}, TextReader.Null, TextWriter.Null, TextWriter.Null);
-			_SelectShellFile(zip);
+			// pause before displaying the zip, otherwise the shell loses the selection
+			// tried doing this async but the timer wasn't firing =(
+			System.Threading.Thread.Sleep(100);
+			_SelectShellFile(zip); 
+			
+			
 		}
 		private void _SelectShellFile(string path)
 		{
