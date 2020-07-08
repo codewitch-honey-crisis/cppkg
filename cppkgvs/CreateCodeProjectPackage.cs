@@ -95,7 +95,7 @@ namespace cppkgvs
 			ThreadHelper.ThrowIfNotOnUIThread();
 			var sln = dte.Solution.FullName;
 			var zip = Path.Combine(Path.GetDirectoryName(sln), Path.GetFileNameWithoutExtension(sln) + ".zip");
-			cppkg.Program.Run(new string[] { sln, "/output",zip}, TextReader.Null, TextWriter.Null, TextWriter.Null);
+			cppkg.Program.Run(new string[] { sln, "/output", zip }, TextReader.Null, TextWriter.Null, TextWriter.Null);
 			// pause before displaying the zip, otherwise the shell loses the selection
 			// tried doing this async but the timer wasn't firing =(
 			System.Threading.Thread.Sleep(100);
