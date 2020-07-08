@@ -617,11 +617,17 @@ namespace LC
 			EnsureStarted();
 			if ('\"' != Current)
 				return false;
-			while (-1 != Advance() && '\r' != Current && '\n' != Current && '\"' != Current)
-				if ('\\' == Current)
-					if (-1 == Advance() || '\r' == Current || '\n' == Current)
+			while (-1 != Advance() && '\r' != Current && '\n' != Current)
+			{
+				if ('"' == Current)
+				{
+					if (-1 == Advance() || '\r' == Current || '\n' == Current || '"' != Current)
+						return true;
+					if (-1 == Advance())
 						return false;
 
+				}
+			}
 			if ('\"' == Current)
 			{
 				Advance(); // move past the string
