@@ -37,6 +37,7 @@ namespace cppkg
 			var sln = args[0];
 			var dir = Path.GetDirectoryName(Path.GetFullPath(sln));
 			var zipPath = Path.Combine(dir, Path.GetFileNameWithoutExtension(sln) + ".zip");
+			var added = new HashSet<string>();
 			if(1!=args.Length && 3!=args.Length)
 			{
 				_PrintUsage(stderr);
@@ -56,29 +57,53 @@ namespace cppkg
 
 			using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
 			{
-				zip.CreateEntryFromFile(sln, Path.Combine(Path.GetFileNameWithoutExtension(sln),Path.GetFileName(sln)));
-				stdout.WriteLine(Path.GetFileName(sln));
+				// this will never happen that the sln file has already been added
+				// but we keep the check here as a barrier in case we modify code
+				// above it, and to make sure it doesn't get readded somehow later
+				var slnp = Path.Combine(Path.GetFileNameWithoutExtension(sln), Path.GetFileName(sln));
+				if (added.Add(slnp))
+				{
+					zip.CreateEntryFromFile(sln, slnp);
+					stdout.WriteLine(Path.GetFileName(sln));
+				}
+				else
+					stderr.WriteLine(slnp+" (skipped)");
 				var ss = _GetSolutionStuff(sln);
 				foreach(var fpath in ss.Files)
 				{
 					var relPath = Path.Combine(Path.GetFileNameWithoutExtension(sln), _GetRelativePath(fpath, dir, true));
-					stderr.Write("\t");
-					stdout.WriteLine(relPath);
-					zip.CreateEntryFromFile(fpath,  relPath);
+					if (added.Add(relPath))
+					{
+						stderr.Write("\t");
+						stdout.WriteLine(relPath);
+						zip.CreateEntryFromFile(fpath, relPath);
+					}
+					else
+						stderr.WriteLine("\t" + relPath + " (skipped)");
 				}
 				stderr.WriteLine();
 
 				foreach (var projPath in ss.Projects)
 				{
-					stdout.WriteLine(_GetRelativePath(projPath, dir, true));
 					var projRelPath = Path.Combine(Path.GetFileNameWithoutExtension(sln), _GetRelativePath(projPath, dir, true));
-					zip.CreateEntryFromFile(projPath, projRelPath);
+					if (added.Add(projRelPath))
+					{
+						stdout.WriteLine(_GetRelativePath(projPath, dir, true));
+						zip.CreateEntryFromFile(projPath, projRelPath);
+					}
+					else
+						stderr.WriteLine(_GetRelativePath(projPath, dir, true) + " (skipped)");
 					foreach (var filePath in _GetProjectInputs(projPath, new HashSet<string>()))
 					{
 						var relPath = _GetRelativePath(filePath, dir, true);
-						stderr.Write("\t");
-						stdout.WriteLine(relPath);
-						zip.CreateEntryFromFile(filePath, Path.Combine(Path.GetFileNameWithoutExtension(sln), relPath));
+						if (added.Add(relPath))
+						{
+							stderr.Write("\t");
+							stdout.WriteLine(relPath);
+							zip.CreateEntryFromFile(filePath, Path.Combine(Path.GetFileNameWithoutExtension(sln), relPath));
+						}
+						else
+							stderr.WriteLine("\t" + relPath + " (skipped)");
 					}
 					stderr.WriteLine();
 				}
