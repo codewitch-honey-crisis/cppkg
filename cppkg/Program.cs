@@ -10,7 +10,7 @@ namespace cppkg
 {
 	public static class Program
 	{
-		static readonly string _CodeBase = Assembly.GetEntryAssembly().GetModules()[0].FullyQualifiedName;
+		static readonly string _CodeBase = Assembly.GetExecutingAssembly().GetModules()[0].FullyQualifiedName;
 		static int Main(string[] args)
 		{
 #if !DEBUG
