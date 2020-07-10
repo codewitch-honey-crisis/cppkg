@@ -472,6 +472,5 @@ namespace cppkg
 					_DirSearch(root, d, result, false);
 			}
 		}
-
 	}
 }
